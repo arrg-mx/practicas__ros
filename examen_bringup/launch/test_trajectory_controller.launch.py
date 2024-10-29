@@ -1,3 +1,4 @@
+
 from launch import LaunchDescription
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.actions import Node
@@ -24,10 +25,17 @@ def generate_launch_description():
     #Definicion del parametro de la ruta del archivo URDF
     robot_description = ParameterValue(Command(['xacro ', urdf_path]), value_type=str)
 
+    world = os.path.join(
+        get_package_share_directory('examen_bringup'),
+        'world',
+        'test_w_1.world'
+    )
+
     #Gazebo
     gazebo = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
+                    launch_arguments={'world': world}.items()
              )
     
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
