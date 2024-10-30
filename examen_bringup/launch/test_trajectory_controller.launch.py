@@ -2,7 +2,7 @@
 from launch import LaunchDescription
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.actions import Node
-from launch.substitutions import Command
+from launch.substitutions import Command, LaunchConfiguration
 import os
 from ament_index_python.packages import get_package_share_path
 
@@ -19,8 +19,10 @@ def generate_launch_description():
     urdf_path = os.path.join(get_package_share_path('examen_description'),
                              'urdf', 'scara_trajectory_controller.xacro')
     #Ruta del archvo RVIZ
-    rviz_config_path = os.path.join(get_package_share_path('examen_description'),
-                                    'rviz', 'urdf.rviz')
+    
+    package_path = os.path.join( get_package_share_directory('examen_description') )
+
+    rviz_config_path = os.path.join( package_path , 'rviz', 'urdf.rviz' )
     
     #Definicion del parametro de la ruta del archivo URDF
     robot_description = ParameterValue(Command(['xacro ', urdf_path]), value_type=str)
@@ -57,18 +59,20 @@ def generate_launch_description():
         executable="joint_state_publisher_gui"
     )
     '''
-
+    '''
     joint_state_publisher = Node(
         package="joint_state_publisher",
         executable="joint_state_publisher"
     )
+    '''
 
     #Ejecucion del nodo de RVIZ
     config_arg = DeclareLaunchArgument(name = 'rvizconfig', default_value = rviz_config_path)
     rviz2_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        arguments=['-d', rviz_config_path]
+        package='rviz2',
+        executable='rviz2',
+        output='screen',
+        arguments=['-d', LaunchConfiguration('rvizconfig')]
     )
 
     scara_controller = ExecuteProcess(
@@ -98,7 +102,7 @@ def generate_launch_description():
             )
         ),
         robot_state_publisher_node,
-        joint_state_publisher,
+        #joint_state_publisher,
         config_arg,
         rviz2_node,
         gazebo,

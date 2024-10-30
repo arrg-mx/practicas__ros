@@ -11,14 +11,15 @@ import xacro
 
 
 def generate_launch_description():
-    gazebo = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-             )
-
+    
+    gazebo = ExecuteProcess(
+            cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_factory.so', os.path.join(
+        get_package_share_directory('examen_bringup'),'world','test_w_1.world')],
+            output='screen'
+        )
     package_path = os.path.join( get_package_share_directory('examen_description') )
 
-    xacro_file = os.path.join( package_path , 'urdf', 'scara_position_controller.xacro' )
+    xacro_file = os.path.join( package_path , 'urdf', 'scara_trajectory_controller.xacro' )
     rviz_config_path = os.path.join( package_path , 'rviz', 'urdf.rviz' )
     doc = xacro.parse(open(xacro_file))
     xacro.process_doc(doc)
@@ -33,7 +34,7 @@ def generate_launch_description():
 
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
                         arguments=['-topic', 'robot_description',
-                                   '-entity', 'dofbot'],
+                                   '-entity', 'scara'],
                         output='screen')
 
     load_joint_state_controller = ExecuteProcess(
@@ -43,9 +44,10 @@ def generate_launch_description():
     )
 
     scara_controller = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'scara_position_controller'],
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'scara_trajectory_controller'],
         output='screen'
     )
+    #Recitar: In nomine patris et filii et spiritus sancti
     config_arg = DeclareLaunchArgument(name = 'rvizconfig', default_value = rviz_config_path)
     rviz_node = Node(
         package='rviz2',
